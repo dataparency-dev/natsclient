@@ -4,6 +4,14 @@ const DefaultServer = "disp-requests"
 
 type Dopts map[string]interface{}
 
+type NATSEDIDRetEntry struct {
+	Identity     string   `json:"identity"`
+	PassCode     string   `json:"pCode"`
+	EntityAccess string   `json:"entityAccess"`
+	Roles        []string `json:"roles"`
+	Groups       []string `json:"groups"`
+}
+
 type NATSResponseHeader struct {
 	Created      bool   `json:"created,omitempty"`
 	Timestamp    int64  `json:"timestamp,omitempty"`
