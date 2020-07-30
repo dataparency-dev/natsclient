@@ -1,3 +1,3 @@
-module github.com/dataparency-dev/natsclient/m
+module github.com/dataparency-dev/natsclient
 
 go 1.14
