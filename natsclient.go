@@ -296,10 +296,16 @@ func Get(server string, dopts Dopts) *NATSResponse {
 	mode := "GET"
 	dhdr := NATSReqHeader{
 		Mode: mode,
-		Path: fmt.Sprintf("/%v/%v/%v/%v",dflags["domain"],
-			dflags["entity"],dflags["token"],dflags["aspect"]),
 		Flags: dflags,
 		Authorization: token,
+	}
+	if dflags["token"] == nil {
+		dhdr.Path = fmt.Sprintf("/%v/%v/%v", dflags["domain"],
+			dflags["entity"], dflags["aspect"])
+
+	} else {
+		dhdr.Path =fmt.Sprintf("/%v/%v/%v/%v", dflags["domain"],
+			dflags["entity"], dflags["token"], dflags["aspect"])
 	}
 	drec := &NATSRequest {
 		Header: dhdr,
