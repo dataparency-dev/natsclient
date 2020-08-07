@@ -13,7 +13,7 @@ import (
 
 var (
 	libnc *nats.Conn
-	token string
+	//token string
 )
 
 func init() {
@@ -33,6 +33,8 @@ func LoginAPI(server, user, passCode string) string {
 	type Token struct {
 		Token string `json:"token"`
 	}
+
+	var token string
 
 	tk := &Token{}
 
@@ -63,7 +65,7 @@ func LoginAPI(server, user, passCode string) string {
 	return token
 }
 
-func SysAdminRegister(server, identity, passCode string) (passCd string, status int) {
+func SysAdminRegister(server, identity, passCode, token string) (passCd string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
@@ -96,11 +98,10 @@ func SysAdminRegister(server, identity, passCode string) (passCd string, status 
 	return passCd, status
 }
 
-func EntityRegister(server, identity, passCode, roles, groups string) (passCd string, status int) {
+func EntityRegister(server, identity, token, roles, groups string) (passCd string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
-	eflags["passCode"] = passCode
 	eflags["roles"] = roles
 	eflags["groups"] = groups
 
@@ -131,12 +132,10 @@ func EntityRegister(server, identity, passCode, roles, groups string) (passCd st
 	return passCd, status
 }
 
-func RelationRegister(server, identity, requestor, passCode string) (resp string, status int) {
+func RelationRegister(server, identity, token string) (resp string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
-	eflags["passCode"] = passCode
-	eflags["requestor"] = requestor
 
 	ehdr := NATSReqHeader{
 		Mode:          "POST",
@@ -165,11 +164,9 @@ func RelationRegister(server, identity, requestor, passCode string) (resp string
 	return resp, status
 }
 
-func EntityRetrieve(server, identity, requestor, passCode string) (resp string, status int) {
+func EntityRetrieve(server, identity, token string) (resp string, status int) {
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
-	eflags["passCode"] = passCode
-	eflags["requestor"] = requestor
 
 	ehdr := NATSReqHeader{
 		Mode:          "GET",
@@ -214,6 +211,10 @@ func SetWithHeaders(dopts Dopts, val bool) {
 	dopts["withHeades"] = val
 }
 
+func SetEntityAccess(dopts Dopts, val string) {
+	dopts["entityAccess"] = val
+}
+
 func SetNoHeaders(dopts Dopts, val bool) {
 	dopts["noHeaders"] = val
 }
@@ -254,7 +255,7 @@ func SetGroups(dopts Dopts, val string) {
 	dopts["groups"] = val
 }
 
-func Get(server string, dopts Dopts) *NATSResponse {
+func Get(server string, dopts Dopts, token string) *NATSResponse {
 	dflags := make(map[string]interface{})
 	if dopts["withHeaders"] != nil {
 		dflags["withHeaders"] = dopts["withHeaders"].(bool)
@@ -307,6 +308,7 @@ func Get(server string, dopts Dopts) *NATSResponse {
 		dhdr.Path =fmt.Sprintf("/%v/%v/%v/%v", dflags["domain"],
 			dflags["entity"], dflags["token"], dflags["aspect"])
 	}
+
 	drec := &NATSRequest {
 		Header: dhdr,
 		Body: nil,
@@ -327,11 +329,11 @@ func Get(server string, dopts Dopts) *NATSResponse {
 	}
 	err = json.Unmarshal(msg.Data,response)
 
-	response.Header.Status = http.StatusOK
+	//response.Header.Status = http.StatusOK
 	return response
 }
 
-func Post(server string, body []byte, dopts Dopts) *NATSResponse {
+func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 
 	dflags := make(map[string]interface{})
 	if dopts["entityAccess"] != nil {
