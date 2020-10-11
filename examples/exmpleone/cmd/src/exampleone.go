@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	nsl "github.com/dataparency-dev/natslib"
+	nsl "github.com/dataparency-dev/natsclient"
 	"github.com/nats-io/nats.go"
 )
 
