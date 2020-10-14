@@ -317,7 +317,7 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 20*time.Second)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -371,7 +371,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 20*time.Second)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -389,7 +389,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 
 func ConnectAPI(url, srvtopic string) *nats.Conn {
 
-	opts := []nats.Option{nats.Name("NATS Lib")}
+	opts := []nats.Option{nats.Name("NATS Client")}
 	opts = setupConnOptions(opts)
 
 	// Connect to NATS
