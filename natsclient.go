@@ -317,7 +317,7 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 20*time.Second)
+	msg, err := libnc.Request(server, payload, 2*time.Second)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -371,7 +371,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 20*time.Second)
+	msg, err := libnc.Request(server, payload, 5*time.Second)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -380,21 +380,19 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 		}
 		log.Printf("%v for request", err)
 		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
-		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
 		response.Header.Status = http.StatusGatewayTimeout
 		return response
 
 	}
-	
 	err = json.Unmarshal(msg.Data,response)
-	
+
 	response.Header.Status = http.StatusOK
 	return response
 }
 
 func ConnectAPI(url, srvtopic string) *nats.Conn {
 
-	opts := []nats.Option{nats.Name("NATS Client")}
+	opts := []nats.Option{nats.Name("NATS Lib")}
 	opts = setupConnOptions(opts)
 
 	// Connect to NATS
