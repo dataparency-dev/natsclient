@@ -380,12 +380,14 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 		}
 		log.Printf("%v for request", err)
 		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
+		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
+		response.Header.Status = http.StatusGatewayTimeout
+		return response
+
 	}
-	if msg.Data != nil {
-		err = json.Unmarshal(msg.Data,response)
-	} else {
-		response.Header.ErrorStr = fmt.Sprintln("nil pointer")
-	}
+	
+	err = json.Unmarshal(msg.Data,response)
+	
 	response.Header.Status = http.StatusOK
 	return response
 }
