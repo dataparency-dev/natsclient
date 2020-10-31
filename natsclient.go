@@ -65,11 +65,13 @@ func LoginAPI(server, user, passCode string) string {
 	return token
 }
 
-func SysAdminRegister(server, identity, passCode, token string) (passCd string, status int) {
+func SysAdminRegister(server, identity, passCode, token string, roles, groups []string) (passCd string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
 	eflags["passCode"] = passCode
+	eflags["roles"] = roles
+	eflags["groups"] = groups
 
 	ehdr := NATSReqHeader{
 		Mode:          "POST",
