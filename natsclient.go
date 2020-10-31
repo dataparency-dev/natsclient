@@ -238,7 +238,7 @@ func SetEntity(dopts Dopts, val string) {
 }
 
 func SetRDID(dopts Dopts, val string) {
-	dopts["token"] = val
+	dopts["rdid"] = val
 }
 
 func SetAspect(dopts Dopts, val string) {
@@ -277,8 +277,8 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	if dopts["entity"] != nil {
 		dflags["entity"] = dopts["entity"].(string)
 	}
-	if dopts["token"] != nil {
-		dflags["token"] = dopts["token"].(string)
+	if dopts["rdid"] != nil {
+		dflags["rdid"] = dopts["rdid"].(string)
 	}
 	if dopts["aspect"] != nil {
 		dflags["aspect"] = dopts["aspect"].(string)
@@ -350,8 +350,8 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	if dopts["entity"] != nil {
 		dflags["entity"] = dopts["entity"].(string)
 	}
-	if dopts["token"] != nil {
-		dflags["token"] = dopts["token"].(string)
+	if dopts["rdid"] != nil {
+		dflags["rdid"] = dopts["rdid"].(string)
 	}
 	if dopts["aspect"] != nil {
 		dflags["aspect"] = dopts["aspect"].(string)
