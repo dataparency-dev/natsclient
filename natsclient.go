@@ -361,7 +361,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	dhdr := NATSReqHeader{
 		Mode: mode,
 		Path: fmt.Sprintf("/%v/%v/%v/%v",dflags["domain"],
-			dflags["entity"],dflags["token"],dflags["aspect"]),
+			dflags["entity"],dflags["rdid"],dflags["aspect"]),
 		Flags: dflags,
 		Authorization: token,
 	}
