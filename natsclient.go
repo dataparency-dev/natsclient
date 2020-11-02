@@ -308,7 +308,7 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 
 	} else {
 		dhdr.Path =fmt.Sprintf("/%v/%v/%v/%v", dflags["domain"],
-			dflags["entity"], dflags["token"], dflags["aspect"])
+			dflags["entity"], dflags["rdid"], dflags["aspect"])
 	}
 
 	drec := &NATSRequest {
