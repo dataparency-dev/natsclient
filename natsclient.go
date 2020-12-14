@@ -373,7 +373,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 2*time.Minute)
+	msg, err := libnc.Request(server, payload, 20*time.Minute)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
