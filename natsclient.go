@@ -53,7 +53,7 @@ func LoginAPI(server, user, passCode string) string {
 		Body:   tbody,
 	}
 	payload, err := json.Marshal(trec)
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 10*time.Second)
 	if err == nil {
 		var response = &NATSResponse{}
 		err = json.Unmarshal(msg.Data, response)
@@ -85,7 +85,7 @@ func SysAdminRegister(server, identity, passCode, token,roles, groups string) (p
 	}
 
 	payload, err := json.Marshal(erec)
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 20*time.Second)
 	if err == nil {
 		var response = &NATSResponse{}
 		err = json.Unmarshal(msg.Data, response)
@@ -119,7 +119,7 @@ func EntityRegister(server, identity, token, roles, groups string) (passCd strin
 	}
 
 	payload, err := json.Marshal(erec)
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 20*time.Second)
 	if err == nil {
 		var response = &NATSResponse{}
 		err = json.Unmarshal(msg.Data, response)
@@ -151,7 +151,7 @@ func RelationRegister(server, identity, token string) (resp string, status int) 
 	}
 
 	payload, err := json.Marshal(erec)
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 20*time.Second)
 	if err == nil {
 		var response = &NATSResponse{}
 		err = json.Unmarshal(msg.Data, response)
@@ -182,7 +182,7 @@ func EntityRetrieve(server, identity, token string) (resp string, status int) {
 	}
 
 	payload, err := json.Marshal(erec)
-	msg, err := libnc.Request(server, payload, 2*time.Second)
+	msg, err := libnc.Request(server, payload, 10*time.Second)
 	if err == nil {
 		var response = &NATSResponse{}
 		err = json.Unmarshal(msg.Data, response)
@@ -319,7 +319,7 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 10*time.Minute)
+	msg, err := libnc.Request(server, payload, 20*time.Minute)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
