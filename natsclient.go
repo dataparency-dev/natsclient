@@ -65,7 +65,7 @@ func LoginAPI(server, user, passCode string) string {
 	return token
 }
 
-func SysAdminRegister(server, identity, passCode, token,roles, groups string) (passCd string, status int) {
+func SysAdminRegister(server, identity, passCode, token, roles, groups string) (passCd string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
@@ -298,8 +298,8 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 
 	mode := "GET"
 	dhdr := NATSReqHeader{
-		Mode: mode,
-		Flags: dflags,
+		Mode:          mode,
+		Flags:         dflags,
 		Authorization: token,
 	}
 	if dflags["token"] == nil {
@@ -307,19 +307,22 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 			dflags["entity"], dflags["aspect"])
 
 	} else {
-		dhdr.Path =fmt.Sprintf("/%v/%v/%v/%v", dflags["domain"],
+		dhdr.Path = fmt.Sprintf("/%v/%v/%v/%v", dflags["domain"],
 			dflags["entity"], dflags["rdid"], dflags["aspect"])
 	}
 
-	drec := &NATSRequest {
+	replyTo := libnc.NewRespInbox()
+	dhdr.ReplyTo = replyTo
+
+	drec := &NATSRequest{
 		Header: dhdr,
-		Body: nil,
+		Body:   nil,
 	}
 
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 20*time.Minute)
+	err = libnc.Publish(server, payload)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -329,7 +332,9 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 		log.Printf("%v for request", err)
 		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
 	}
-	err = json.Unmarshal(msg.Data,response)
+	_, err = libnc.Subscribe(replyTo, func (msg *nats.Msg)  {
+		err = json.Unmarshal(msg.Data, response)
+	})
 
 	//response.Header.Status = http.StatusOK
 	return response
@@ -360,14 +365,19 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	mode := "POST"
 	dhdr := NATSReqHeader{
 		Mode: mode,
-		Path: fmt.Sprintf("/%v/%v/%v/%v",dflags["domain"],
-			dflags["entity"],dflags["rdid"],dflags["aspect"]),
-		Flags: dflags,
+		Path: fmt.Sprintf("/%v/%v/%v/%v", dflags["domain"],
+			dflags["entity"], dflags["rdid"], dflags["aspect"]),
+		Flags:         dflags,
 		Authorization: token,
 	}
-	drec := &NATSRequest {
+
+	replyTo := libnc.NewRespInbox()
+	dhdr.ReplyTo = replyTo
+
+
+	drec := &NATSRequest{
 		Header: dhdr,
-		Body: body,
+		Body:   body,
 	}
 
 	response := &NATSResponse{}
@@ -386,7 +396,15 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 		return response
 
 	}
-	err = json.Unmarshal(msg.Data,response)
+
+	sub, err := libnc.Subscribe(replyTo, func (msg *nats.Msg)  {
+		err = json.Unmarshal(msg.Data, response)
+	})
+
+	err = sub.Unsubscribe()
+	if err != nil {
+		response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n",err)
+	}
 
 	response.Header.Status = http.StatusOK
 	return response

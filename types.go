@@ -23,6 +23,7 @@ type NATSReqHeader struct {
 	Flags         map[string]interface{} `json:"flags"`
 	Authorization string                 `json:"authorization"`
 	Accept        string                 `json:"accept"`
+	ReplyTo			string				`json:"reply_to"`
 }
 
 type NATSRequest struct {
