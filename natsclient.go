@@ -322,7 +322,7 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	err = libnc.Publish(server, payload)
+	_, err = libnc.Request(server, payload, 2*time.Minute)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -332,9 +332,14 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 		log.Printf("%v for request", err)
 		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
 	}
-	_, err = libnc.Subscribe(replyTo, func (msg *nats.Msg)  {
+	sub, err := libnc.Subscribe(replyTo, func (msg *nats.Msg)  {
 		err = json.Unmarshal(msg.Data, response)
 	})
+
+	err = sub.Unsubscribe()
+	if err != nil {
+		response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n",err)
+	}
 
 	//response.Header.Status = http.StatusOK
 	return response
@@ -374,7 +379,6 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	replyTo := libnc.NewRespInbox()
 	dhdr.ReplyTo = replyTo
 
-
 	drec := &NATSRequest{
 		Header: dhdr,
 		Body:   body,
@@ -383,7 +387,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	response := &NATSResponse{}
 	payload, err := json.Marshal(drec)
 
-	msg, err := libnc.Request(server, payload, 20*time.Minute)
+	_, err = libnc.Request(server, payload, 2*time.Minute)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
