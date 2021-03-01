@@ -343,6 +343,11 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n", err)
 		}
 		response.Header.Status = http.StatusOK
+		err = s.Unsubscribe()
+		if err != nil {
+			response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n", err)
+		}
+
 		return response
 	}
 
