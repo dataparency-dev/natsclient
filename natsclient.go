@@ -323,6 +323,8 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	payload, err := json.Marshal(drec)
 
 	_, err = libnc.Request(server, payload, 2*time.Minute)
+	//fmt.Printf("req resp %v\n",m)
+	//err = libnc.Publish(server, payload)
 	if err != nil {
 		response.Header.Status = http.StatusBadGateway
 		if libnc.LastError() != nil {
@@ -332,16 +334,20 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 		log.Printf("%v for request", err)
 		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
 	}
-	sub, err := libnc.Subscribe(replyTo, func (msg *nats.Msg)  {
+	s, err := libnc.SubscribeSync(replyTo)
+	if err == nil {
+		msg,err := s.NextMsg(2*time.Minute)
+		//fmt.Printf("sub resp %v\n",string(msg.Data))
 		err = json.Unmarshal(msg.Data, response)
-	})
-
-	err = sub.Unsubscribe()
-	if err != nil {
-		response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n",err)
+		if err != nil {
+			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n",err)
+		}
+		response.Header.Status = http.StatusOK
+		return response
 	}
 
 	//response.Header.Status = http.StatusOK
+	response.Header.Status = http.StatusBadRequest
 	return response
 }
 
@@ -379,6 +385,7 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	replyTo := libnc.NewRespInbox()
 	dhdr.ReplyTo = replyTo
 
+
 	drec := &NATSRequest{
 		Header: dhdr,
 		Body:   body,
@@ -397,20 +404,27 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 		log.Printf("%v for request", err)
 		response.Header.ErrorStr = fmt.Sprintf("%v for request", err)
 		response.Header.Status = http.StatusGatewayTimeout
-		return response
-
 	}
 
-	sub, err := libnc.Subscribe(replyTo, func (msg *nats.Msg)  {
+	s, err := libnc.SubscribeSync(replyTo)
+	if err == nil {
+		msg,err := s.NextMsg(2*time.Minute)
 		err = json.Unmarshal(msg.Data, response)
-	})
+		if err != nil {
+			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n",err)
+		}
+		//fmt.Printf("resp %v\n",response.Response)
+		response.Header.Status = http.StatusOK
 
-	err = sub.Unsubscribe()
-	if err != nil {
-		response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n",err)
+		err = s.Unsubscribe()
+		if err != nil {
+			response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n",err)
+		}
+
+		return response
 	}
 
-	response.Header.Status = http.StatusOK
+	response.Header.Status = http.StatusBadRequest
 	return response
 }
 
