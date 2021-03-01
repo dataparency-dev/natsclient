@@ -336,11 +336,11 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 	}
 	s, err := libnc.SubscribeSync(replyTo)
 	if err == nil {
-		msg,err := s.NextMsg(2*time.Minute)
+		msg, err := s.NextMsg(2 * time.Minute)
 		//fmt.Printf("sub resp %v\n",string(msg.Data))
 		err = json.Unmarshal(msg.Data, response)
 		if err != nil {
-			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n",err)
+			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n", err)
 		}
 		response.Header.Status = http.StatusOK
 		return response
@@ -385,7 +385,6 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	replyTo := libnc.NewRespInbox()
 	dhdr.ReplyTo = replyTo
 
-
 	drec := &NATSRequest{
 		Header: dhdr,
 		Body:   body,
@@ -408,17 +407,17 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 
 	s, err := libnc.SubscribeSync(replyTo)
 	if err == nil {
-		msg,err := s.NextMsg(2*time.Minute)
+		msg, err := s.NextMsg(2 * time.Minute)
 		err = json.Unmarshal(msg.Data, response)
 		if err != nil {
-			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n",err)
+			response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n", err)
 		}
 		//fmt.Printf("resp %v\n",response.Response)
 		response.Header.Status = http.StatusOK
 
 		err = s.Unsubscribe()
 		if err != nil {
-			response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n",err)
+			response.Header.ErrorStr = fmt.Sprintf("unsub err %v\n", err)
 		}
 
 		return response
