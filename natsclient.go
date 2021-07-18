@@ -511,7 +511,7 @@ func SCCheck(server, channel, token, rdid string) error {
 
 func processChannelReceivedMsg(msg *nats.Msg) ([]byte, error) {
 
-	return msg.Data, err
+	return msg.Data, nil
 }
 
 func SecureChannelQueueSubscribe(server string, channel string, token, rdid string) ([]byte, error) {
