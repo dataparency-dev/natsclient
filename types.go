@@ -19,11 +19,11 @@ type NATSResponseHeader struct {
 
 type NATSReqHeader struct {
 	Mode          string                 `json:"mode"`
-	Path          string                 `json:"path"`
-	Flags         map[string]interface{} `json:"flags"`
-	Authorization string                 `json:"authorization"`
-	Accept        string                 `json:"accept"`
-	ReplyTo			string				`json:"reply_to"`
+	Path          string                 `json:"path,omitempty"`
+	Flags         map[string]interface{} `json:"flags,omitempty"`
+	Authorization string                 `json:"authorization,omitempty"`
+	Accept        string                 `json:"accept,omitempty"`
+	ReplyTo			string				`json:"reply_to,omitempty"`
 }
 
 type NATSRequest struct {
@@ -34,4 +34,26 @@ type NATSRequest struct {
 type NATSResponse struct {
 	Header   NATSResponseHeader `json:"header"`
 	Response string             `json:"response"`
+}
+
+type datarec struct {
+	value interface{}
+}
+
+type grspHeaderResults struct {
+	Data datarec `json:"data"`
+}
+
+type qrspHeader struct {
+	DocId      string              `json:"docId"`
+	DocVersion string              `json:"docVersion"`
+	Created    int64               `json:"created"`
+	Results    []grspHeaderResults `json:"results"`
+}
+type queryResponse struct {
+	Docs []qrspHeader `json:"docs"`
+}
+
+type NATSSCData struct {
+
 }
