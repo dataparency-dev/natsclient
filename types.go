@@ -23,7 +23,7 @@ type NATSReqHeader struct {
 	Flags         map[string]interface{} `json:"flags,omitempty"`
 	Authorization string                 `json:"authorization,omitempty"`
 	Accept        string                 `json:"accept,omitempty"`
-	ReplyTo			string				`json:"reply_to,omitempty"`
+	ReplyTo       string                 `json:"reply_to,omitempty"`
 }
 
 type NATSRequest struct {
@@ -55,5 +55,5 @@ type queryResponse struct {
 }
 
 type NATSSCData struct {
-
+	Response queryResponse
 }
