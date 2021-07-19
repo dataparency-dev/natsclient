@@ -53,7 +53,7 @@ func LoginAPI(server, user, passCode string) string {
 		Mode: "POST",
 		Path: "/api/login",
 	}
-	trec := &NATSRequest{
+	trec := NATSRequest{
 		Header: thdr,
 		Body:   tbody,
 	}
@@ -61,7 +61,7 @@ func LoginAPI(server, user, passCode string) string {
 	if err != nil {
 		fmt.Printf("trec err %v\n", err)
 	}
-	fmt.Printf("payload %v\n", string(payload))
+	//fmt.Printf("payload %v\n", string(payload))
 	msg, err := libnc.Request(server, payload, 20*time.Second)
 	if err == nil {
 		var response = &NATSResponse{}
