@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -72,7 +71,7 @@ func LoginAPI(server, user, passCode string) string {
 		}
 		err = json.Unmarshal([]byte(response.Response), &tk)
 		//fmt.Printf("resp.response %v header %v\n",response.Response,response.Header)
-		token = tk.Token
+		token = string(tk.Token)
 		//fmt.Printf("token '%v'\n",token)
 	} else {
 		return ""
@@ -351,7 +350,7 @@ func Get(server string, dopts Dopts, token string) *NATSResponse {
 		Flags:         dflags,
 		Authorization: token,
 	}
-	if dflags["token"] == nil {
+	if dflags["rdid"] == nil {
 		dhdr.Path = fmt.Sprintf("/%v/%v/%v", dflags["domain"],
 			dflags["entity"], dflags["aspect"])
 
@@ -489,23 +488,79 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	return response
 }
 
+/////////////////////////////////// SECURE CHANNELS //////////////
+////
+func InitChannel(server, ch, token string) (string, error) {
+	///////////////////////////////////////
+	// setup drivers.rides secure channel
+	// register channel entity
+	_, status := EntityRetrieve(server, ch, token)
+	//fmt.Printf("resp %v status %v\n",resp, status)
+	if status != http.StatusOK {
+		pc, status := EntityRegister(server, ch, token, "admin,developer", "")
+		fmt.Printf("%v GrpEntity passCode %v status %v\n", ch, pc, status)
+		if status != http.StatusOK {
+			return "", fmt.Errorf("Channel %v entity init err %v\n", ch, status)
+		}
+	}
+
+	// register channel RDID for controlled access
+	scRDID, status := RelationRegister(server, ch, token)
+	if status != http.StatusOK {
+		//fmt.Printf("status %v relating DriversRDID\n",status)
+		scRDID, status = RelationRetrieve(server, ch, token)
+		//fmt.Printf("status %v retrieving DriversRDID\n",status)
+		if status != http.StatusOK {
+			return "", fmt.Errorf("Channel %v init err %v\n", ch, status)
+		}
+	}
+	ichannel := libnc.NewRespInbox() // create unique response message key
+	postData := `{"entity" : "` + ch + `", "innerchannel" : "` + ichannel + `" }`
+
+	dflags := make(map[string]interface{})
+	SetDomain(dflags, "SecureChannel")
+	SetEntity(dflags, ch)
+	SetRDID(dflags, scRDID)
+	SetAspect(dflags, "entity")
+	SetTag(dflags, ch)
+	fmt.Printf("SC ch %v token %v\n", ch, token)
+	rsp := Get(server, dflags, token)
+	if rsp.Header.Status != http.StatusOK {
+		rsp = Post(server, []byte(postData), dflags, token)
+	}
+	if rsp.Header.Status != 200 {
+		fmt.Printf("cannot store entity %v err %v\n", ch, rsp.Header.Status)
+	}
+	return scRDID, nil
+}
+
+func SetupSecureChannels(server string, channelList []string, token string) map[string]string {
+	scRDID := make(map[string]string)
+	for _, ch := range channelList {
+		rdid, _ := InitChannel(server, ch, token)
+		scRDID[ch] = rdid
+	}
+	return scRDID
+}
+
 func SCCheck(server, channel, token, rdid string) error {
 	// get recvd message replyTo message
 
 	dflags := make(map[string]interface{})
 	SetDomain(dflags, "SecureChannel")
-	SetEntity(dflags, "Channels")
+	SetEntity(dflags, channel)
 	SetRDID(dflags, rdid)
-	SetAspect(dflags, channel)
-	SetTag(dflags, "data")
+	SetAspect(dflags, "entity")
+	SetTag(dflags, "entity")
+	SetTimestamp(dflags, "latest")
 	rsp := Get(server, dflags, token)
+	if rsp.Header.Status != http.StatusOK {
+		return fmt.Errorf("invalid access %v", rsp.Header.Status)
+	}
 	rspData := NATSResponse{}
 	err := json.Unmarshal([]byte(rsp.Response), &rspData)
 	if err != nil {
 		return fmt.Errorf("unmarshall err %v", err)
-	}
-	if rspData.Header.Status != 200 {
-		return fmt.Errorf("invalid access %v", rspData.Header.Status)
 	}
 	return nil
 }
@@ -515,51 +570,31 @@ func processChannelReceivedMsg(msg *nats.Msg) ([]byte, error) {
 	return msg.Data, nil
 }
 
-func SecureChannelQueueSubscribe(server string, channel string, token, rdid string) ([]byte, error) {
+func SecureChannelQueueSubscribe(server, channel, queue, token, rdid string, cb nats.MsgHandler) error {
 	log.Printf("Connecting secure channel %s\n", channel)
 	var err error
 	if err = SCCheck(server, channel, token, rdid); err != nil {
 		log.Printf("Error: no access %s\n", err)
-		return []byte(""), err
+		return err
 	}
-	msgs := channel + ":MsgAvail"
-	var msgData []byte
-	type msgAvail struct {
-		Topic string `json:"topic"`
-		Key   string `json:"key"`
-	}
-	ma := &msgAvail{}
-	// Use a WaitGroup to wait for a message to arrive
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
 	// Subscribe to MsgAvail topic
-	if _, err := libnc.Subscribe(msgs, func(m *nats.Msg) {
-		_ = json.Unmarshal(m.Data, ma)
-		var sub *nats.Subscription
-		// subscribe to hidden topic for message received
-		sub, err = libnc.Subscribe(ma.Topic, func(m *nats.Msg) {
-			if err != nil {
-				msgData = []byte("")
-			}
-			msgData = m.Data
-			if err := sub.Unsubscribe(); err != nil {
-				log.Printf("error unsubscribing %v\n", err)
-			}
-		})
-		wg.Done()
-	}); err != nil {
-		log.Printf("subscribe error: %v\n", err)
-	}
+	_, err = libnc.QueueSubscribe(channel, queue, cb) //func(m *nats.Msg) {
+	/*		_ = json.Unmarshal(m.Data, ma)
+			var sub *nats.Subscription
+			// subscribe to hidden topic for message received
+			sub, err = libnc.Subscribe(ma.Topic, func(m *nats.Msg) {
+				cb(m)
+				if err := sub.Unsubscribe(); err != nil {
+					log.Printf("error unsubscribing %v\n", err)
+				}
+			})
+		})*/
 
-	// Wait for a message to come in
-	wg.Wait()
-
-	return msgData, err
+	return err
 
 }
 
-func SecureChannelPublish(m *nats.Msg, server string, channel string,
+func SecureChannelPublish(msg []byte, server string, channel string,
 	token, rdid string, expireSecs int64) error {
 	log.Printf("Publishing secure channel %s\n", channel)
 	if err := SCCheck(server, channel, token, rdid); err != nil {
@@ -567,7 +602,9 @@ func SecureChannelPublish(m *nats.Msg, server string, channel string,
 		return err
 	}
 	receiveTopic := libnc.NewRespInbox() // publish to temp uniquely named receive topic
+	m := &nats.Msg{}
 	m.Subject = receiveTopic
+	m.Data = msg
 	if err := libnc.PublishMsg(m); err != nil {
 		log.Printf("Error: %s\n", err)
 		return err
@@ -576,25 +613,41 @@ func SecureChannelPublish(m *nats.Msg, server string, channel string,
 	m.Subject = channel + ":MsgAvail" // publish to MsgAvail topic
 	m.Data = []byte(msgKey)           // set message Data to temp uniquely named receive topic key
 	// by which to lookup in D-DDN subscriber received MsgAvail
-	if err := libnc.PublishMsg(m); err != nil { // publish message to channel MsgAvail topic
+	if err := libnc.PublishMsg(m); err != nil { // publish message to channel MsgAvail Topic
 		log.Printf("Error: %s\n", err)
 		return err
 	}
 	// POST to channel MsgAvail entity entry for subscriber later lookup
-	var data []byte
+	payload := `{"receive_topic" : "` + receiveTopic + `"}`
 	dflags := make(map[string]interface{})
 	SetDomain(dflags, "SecureChannel")
-	SetEntity(dflags, "Channels")
+	SetEntity(dflags, channel)
 	SetRDID(dflags, rdid)
-	SetAspect(dflags, channel)
+	SetAspect(dflags, "messages")
 	//SetExpiry(dflags, expireSecs)  TODO: create SetExpiry function
-	rsp := Post(server, data, dflags, token)
+	rsp := Post(server, []byte(payload), dflags, token)
 	if rsp.Header.Status != http.StatusOK {
 		err := fmt.Errorf("error %v\n", rsp.Header.Status)
 		return err
 	}
 
 	return nil
+
+}
+
+func SecureChannelRequest(server, subj, rdid, token string, data []byte, timeout time.Duration) (*nats.Msg, error) {
+	log.Printf("Requesting secure channel %s\n", subj)
+	if err := SCCheck(server, subj, token, rdid); err != nil {
+		log.Printf("Error: %s\n", err)
+		return nil, err
+	}
+	replyTo := libnc.NewRespInbox() // create unique response message key
+	m := &nats.Msg{}
+	m.Subject = subj
+	m.Reply = replyTo
+	m.Data = data
+	m, err := libnc.Request(subj, data, timeout)
+	return m, err
 
 }
 
