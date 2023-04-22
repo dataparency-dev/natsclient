@@ -114,7 +114,7 @@ func SysAdminRegister(server, identity, passCode, token, roles, groups string) (
 	return passCd, status
 }
 
-func EntityRegister(server, identity, token, roles, groups string) (passCd string, status int) {
+func EntityRegister(server, identity, token, roles, groups string, body []byte) (passCd string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
@@ -129,7 +129,7 @@ func EntityRegister(server, identity, token, roles, groups string) (passCd strin
 	}
 	erec := &NATSRequest{
 		Header: ehdr,
-		Body:   nil,
+		Body:   body,
 	}
 
 	payload, err := json.Marshal(erec)
