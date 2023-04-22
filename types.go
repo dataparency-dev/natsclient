@@ -19,11 +19,12 @@ type NATSResponseHeader struct {
 
 type NATSReqHeader struct {
 	Mode          string                 `json:"mode"`
-	Path          string                 `json:"path,omitempty"`
-	Flags         map[string]interface{} `json:"flags,omitempty"`
-	Authorization string                 `json:"authorization,omitempty"`
-	Accept        string                 `json:"accept,omitempty"`
-	ReplyTo       string                 `json:"reply_to,omitempty"`
+	Path          string                 `json:"path"`
+	Flags         map[string]interface{} `json:"flags"`
+	Authorization string                 `json:"authorization"`
+	Accept        string                 `json:"accept"`
+	ReplyTo       string                 `json:"reply_to"`
+	SessPubkey    string                 `json:"sessPubkey,omitempty"`
 }
 
 type NATSRequest struct {
@@ -33,7 +34,7 @@ type NATSRequest struct {
 
 type NATSResponse struct {
 	Header   NATSResponseHeader `json:"header"`
-	Response string             `json:"response"`
+	Response []byte             `json:"response"`
 }
 
 type datarec struct {
@@ -55,5 +56,4 @@ type queryResponse struct {
 }
 
 type NATSSCData struct {
-	Response queryResponse
 }
