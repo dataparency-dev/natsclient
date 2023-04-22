@@ -488,8 +488,8 @@ func Post(server string, body []byte, dopts Dopts, token string) *NATSResponse {
 	return response
 }
 
-/////////////////////////////////// SECURE CHANNELS //////////////
-////
+// ///////////////////////////////// SECURE CHANNELS //////////////
+// //
 func InitChannel(server, ch, token string) (string, error) {
 	///////////////////////////////////////
 	// setup drivers.rides secure channel
@@ -497,7 +497,7 @@ func InitChannel(server, ch, token string) (string, error) {
 	_, status := EntityRetrieve(server, ch, token)
 	//fmt.Printf("resp %v status %v\n",resp, status)
 	if status != http.StatusOK {
-		pc, status := EntityRegister(server, ch, token, "admin,developer", "")
+		pc, status := EntityRegister(server, ch, token, "admin,developer", "", []byte(ch))
 		fmt.Printf("%v GrpEntity passCode %v status %v\n", ch, pc, status)
 		if status != http.StatusOK {
 			return "", fmt.Errorf("Channel %v entity init err %v\n", ch, status)
