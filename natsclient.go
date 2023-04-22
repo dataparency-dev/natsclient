@@ -889,11 +889,11 @@ func InitChannel(server, ch string, token APIToken, create bool) (string, error)
 	pc, status := EntityRetrieve(server, ch, token)
 	if status != http.StatusOK {
 		if create {
-			pc, status = EntityRegister(server, ch, token, "", "")
+			pc, status = EntityRegister(server, ch, token, "", "", []byte(ch))
 			fmt.Printf("%v GrpEntity passCode %v status %v\n", ch, pc, status)
 			if status == http.StatusRequestTimeout { // retry
 				time.After(1 * time.Second)
-				pc, status = EntityRegister(server, ch, token, "", "")
+				pc, status = EntityRegister(server, ch, token, "", "", []byte(ch))
 			}
 			if status != http.StatusOK {
 				return "", fmt.Errorf("Channel %v entity init err %v\n", ch, status)
