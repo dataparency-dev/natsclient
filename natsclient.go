@@ -347,12 +347,15 @@ func SysAdminRegister(server, identity, passCode string, token APIToken, roles, 
 	return passCd, status
 }
 
-func EntityRegister(server, identity string, token APIToken, roles, groups string, body []byte) (passCd string, status int) {
+func EntityRegister(server, identity string, token APIToken,
+	roles, groups, queue string, genesis, body []byte) (passCd string, status int) {
 
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
 	eflags["roles"] = roles
 	eflags["groups"] = groups
+	eflags["queueID"] = queue
+	eflags["genesis"] = genesis
 
 	sessKey := GetSessionKey(token.Token)
 	if sessKey == nil {
@@ -889,11 +892,11 @@ func InitChannel(server, ch string, token APIToken, create bool) (string, error)
 	pc, status := EntityRetrieve(server, ch, token)
 	if status != http.StatusOK {
 		if create {
-			pc, status = EntityRegister(server, ch, token, "", "", []byte(ch))
+			pc, status = EntityRegister(server, ch, token, "", "", "", []byte(""), []byte(ch))
 			fmt.Printf("%v GrpEntity passCode %v status %v\n", ch, pc, status)
 			if status == http.StatusRequestTimeout { // retry
 				time.After(1 * time.Second)
-				pc, status = EntityRegister(server, ch, token, "", "", []byte(ch))
+				pc, status = EntityRegister(server, ch, token, "", "", "", []byte(""), []byte(ch))
 			}
 			if status != http.StatusOK {
 				return "", fmt.Errorf("Channel %v entity init err %v\n", ch, status)
