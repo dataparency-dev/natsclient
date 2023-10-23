@@ -80,6 +80,12 @@ type APIToken struct {
 
 func _Encrypt(data []byte, key *ecc.KeyPair) []byte {
 	//encrypted := data
+	// catch panic from encryption invalid key
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("_encrypt panic occurred:", err)
+		}
+	}()
 	encrypted, err := key.EncryptMessage(data, key.GetPubKey())
 	if err != nil {
 		fmt.Printf("encrypt err: %v\n", err)
@@ -91,6 +97,12 @@ func _Encrypt(data []byte, key *ecc.KeyPair) []byte {
 func _Decrypt(encrypted []byte, key *ecc.KeyPair) []byte {
 
 	//decrypted := encrypted
+	// catch panic from decrypt invalid key
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("_decrypt panic occurred:", err)
+		}
+	}()
 	_, decrypted, err := key.DecryptMessage(encrypted)
 	if err != nil {
 		fmt.Printf("decrypt err: %v\n", err)
