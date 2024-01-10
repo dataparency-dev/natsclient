@@ -459,6 +459,56 @@ func RelationRetrieve(server, identity string, token APIToken) (resp string, sta
 	return resp, status
 
 }
+
+func RelationRemove(server, identity string, token APIToken) (resp string, status int) {
+
+	eflags := make(map[string]interface{})
+	eflags["identity"] = identity
+
+	sessKey := GetSessionKey(token.Token)
+	if sessKey == nil {
+		return "", http.StatusRequestTimeout
+	}
+
+	ehdr := NATSReqHeader{
+		Mode:          "GET",
+		Path:          "/relation/remove",
+		Flags:         eflags,
+		Authorization: token.Token,
+		SessPubkey:    sessKey.GetPubKey().ToB64(), // set public key to encrypt further server requests
+
+	}
+
+	erec := &NATSRequest{
+		Header: ehdr,
+		Body:   nil,
+	}
+
+	payload, err := json.Marshal(erec)
+	encrypted := dpEncrypt(payload)
+
+	msg, err := libnc.Request(server, encrypted, 50*time.Second)
+	if err == nil {
+		var response = &NATSResponse{}
+		sessKey := GetSessionKey(token.Token)
+		if sessKey == nil {
+			return "", http.StatusNetworkAuthenticationRequired
+		}
+
+		dmsg := _Decrypt(msg.Data, sessKey)
+		err = json.Unmarshal(dmsg, response)
+		if response.Header.Status != 200 {
+			resp = response.Header.ErrorStr
+			status = response.Header.Status
+		} else {
+			resp = string(response.Response)
+			status = response.Header.Status
+		}
+	}
+	return resp, status
+
+}
+
 func RelationRegister(server, identity string, token APIToken, mode string) (resp string, status int) {
 
 	eflags := make(map[string]interface{})
