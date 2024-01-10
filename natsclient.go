@@ -601,6 +601,53 @@ func EntityUpdate(server, identity string, token APIToken, body []byte) (resp st
 	return resp, status
 }
 
+func EntityRemove(server, identity string, token APIToken) (resp string, status int) {
+	eflags := make(map[string]interface{})
+	eflags["identity"] = identity
+
+	sessKey := GetSessionKey(token.Token) // get session key matching this login token
+	if sessKey == nil {
+		return "", http.StatusRequestTimeout
+	}
+	ehdr := NATSReqHeader{
+		Mode:          "POST",
+		Path:          "/entity/remove",
+		Flags:         eflags,
+		Authorization: token.Token,
+		SessPubkey:    sessKey.GetPubKey().ToB64(), // set public key to encrypt further server requests
+
+	}
+	erec := &NATSRequest{
+		Header: ehdr,
+		Body:   nil,
+	}
+
+	status = http.StatusNotAcceptable
+	resp = ""
+	payload, err := json.Marshal(erec)
+	encrypted := dpEncrypt(payload)
+
+	msg, err := libnc.Request(server, encrypted, 50*time.Second)
+	if err == nil {
+		var response = &NATSResponse{}
+		sessKey := GetSessionKey(token.Token)
+		if sessKey == nil {
+			return "", http.StatusUnprocessableEntity
+		}
+
+		dmsg := _Decrypt(msg.Data, sessKey)
+		err = json.Unmarshal(dmsg, response)
+		if response.Header.Status != 200 {
+			resp = response.Header.ErrorStr
+			status = response.Header.Status
+		} else {
+			resp = string(response.Response)
+			status = response.Header.Status
+		}
+	}
+	return resp, status
+}
+
 func SetTag(dopts Dopts, val string) {
 	dopts["k"] = val
 }
