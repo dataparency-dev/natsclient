@@ -471,7 +471,7 @@ func RelationRemove(server, identity string, token APIToken) (resp string, statu
 	}
 
 	ehdr := NATSReqHeader{
-		Mode:          "GET",
+		Mode:          "POST",
 		Path:          "/relation/remove",
 		Flags:         eflags,
 		Authorization: token.Token,
