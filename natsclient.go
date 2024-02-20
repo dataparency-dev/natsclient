@@ -711,7 +711,11 @@ func SetMatch(dopts Dopts, val string) {
 }
 
 func SetWithHeaders(dopts Dopts, val bool) {
-	dopts["withHeades"] = val
+	dopts["withHeaders"] = val
+}
+
+func SetSecureHeaders(dopts Dopts, val bool) {
+	dopts["secureHeader"] = val
 }
 
 func SetEntityAccess(dopts Dopts, val string) {
