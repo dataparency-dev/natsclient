@@ -710,11 +710,11 @@ func SetMatch(dopts Dopts, val string) {
 	dopts["q"] = val
 }
 
-func SetWithHeaders(dopts Dopts, val bool) {
+func SetWithHeaders(dopts Dopts, val string) {
 	dopts["withHeaders"] = val
 }
 
-func SetSecureHeader(dopts Dopts, val bool) {
+func SetSecureHeader(dopts Dopts, val string) {
 	dopts["secureHeader"] = val
 }
 
@@ -726,7 +726,7 @@ func SetExpiry(dopts Dopts, val string) {
 	dopts["expiry"] = val
 }
 
-func SetNoHeaders(dopts Dopts, val bool) {
+func SetNoHeaders(dopts Dopts, val string) {
 	dopts["noHeaders"] = val
 }
 
@@ -758,7 +758,7 @@ func SetDocId(dopts Dopts, val string) {
 	dopts["id"] = val
 }
 
-func SetCount(dopts Dopts, val bool) {
+func SetCount(dopts Dopts, val string) {
 	dopts["count"] = val
 }
 
@@ -777,10 +777,10 @@ func SetContentType(dopts Dopts, val string) {
 func Get(server string, dopts Dopts, token APIToken) *NATSResponse {
 	dflags := make(map[string]interface{})
 	if dopts["withHeaders"] != nil {
-		dflags["withHeaders"] = dopts["withHeaders"].(bool)
+		dflags["withHeaders"] = dopts["withHeaders"].(string)
 	}
 	if dopts["noHeaders"] != nil {
-		dflags["noHeaders"] = dopts["noHeaders"].(bool)
+		dflags["noHeaders"] = dopts["noHeaders"].(string)
 	}
 	if dopts["timestamp"] != nil {
 		dflags["timestamp"] = dopts["timestamp"].(string)
@@ -930,10 +930,10 @@ func Post(server string, body []byte, dopts Dopts, token APIToken) *NATSResponse
 		dflags["entityAccess"] = dopts["entityAccess"].(string)
 	}
 	if dopts["withHeader"] != nil {
-		dflags["withHeader"] = dopts["withHeader"].(bool)
+		dflags["withHeader"] = dopts["withHeader"].(string)
 	}
 	if dopts["secureHeader"] != nil {
-		dflags["secureHeader"] = dopts["secureHeader"].(bool)
+		dflags["secureHeader"] = dopts["secureHeader"].(string)
 	}
 	if dopts["domain"] != nil {
 		dflags["domain"] = dopts["domain"].(string)
