@@ -714,7 +714,7 @@ func SetWithHeaders(dopts Dopts, val bool) {
 	dopts["withHeaders"] = val
 }
 
-func SetSecureHeaders(dopts Dopts, val bool) {
+func SetSecureHeader(dopts Dopts, val bool) {
 	dopts["secureHeader"] = val
 }
 
@@ -931,6 +931,9 @@ func Post(server string, body []byte, dopts Dopts, token APIToken) *NATSResponse
 	}
 	if dopts["withHeader"] != nil {
 		dflags["withHeader"] = dopts["withHeader"].(bool)
+	}
+	if dopts["secureHeader"] != nil {
+		dflags["secureHeader"] = dopts["secureHeader"].(bool)
 	}
 	if dopts["domain"] != nil {
 		dflags["domain"] = dopts["domain"].(string)
