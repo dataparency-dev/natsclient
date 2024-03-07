@@ -899,7 +899,7 @@ func Get(server string, dopts Dopts, token APIToken) *NATSResponse {
 			if err != nil {
 				response.Header.ErrorStr = fmt.Sprintf("unmarshal err %v\n", err)
 			}
-			response.Header.Status = http.StatusOK
+			//response.Header.Status = http.StatusOK
 			break
 		} else if err == nats.ErrTimeout {
 			retries = retries - 1
