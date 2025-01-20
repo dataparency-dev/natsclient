@@ -749,7 +749,7 @@ func TemplateRetrieve(server, tname, tclass string, token APIToken) (resp string
 
 func TemplateRegister(server, tname, tclass, tsource string, token APIToken) (resp string, status int) {
 	eflags := make(map[string]interface{})
-	eflags["template"] = tname
+	eflags["identifier"] = tname
 	eflags["class"] = tclass
 
 	sessKey := GetSessionKey(token.Token) // get session key matching this login token
