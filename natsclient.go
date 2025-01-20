@@ -714,6 +714,7 @@ func TemplateRetrieve(server, identity string, token APIToken) (resp string, sta
 		SessPubkey:    sessKey.GetPubKey().ToB64(), // set public key to encrypt further server requests
 
 	}
+
 	erec := &NATSRequest{
 		Header: ehdr,
 		Body:   nil,
@@ -745,7 +746,7 @@ func TemplateRetrieve(server, identity string, token APIToken) (resp string, sta
 	return resp, status
 }
 
-func TemplateRegister(server, identity string, token APIToken) (resp string, status int) {
+func TemplateRegister(server, identity string, tsource string, token APIToken) (resp string, status int) {
 	eflags := make(map[string]interface{})
 	eflags["identity"] = identity
 
@@ -761,9 +762,17 @@ func TemplateRegister(server, identity string, token APIToken) (resp string, sta
 		SessPubkey:    sessKey.GetPubKey().ToB64(), // set public key to encrypt further server requests
 
 	}
+
+	// check template source
+	templ := &header{}
+	err := json.Unmarshal([]byte(tsource), templ)
+	if err != nil {
+		return "", http.StatusBadRequest
+	}
+
 	erec := &NATSRequest{
 		Header: ehdr,
-		Body:   nil,
+		Body:   []byte(tsource),
 	}
 
 	status = http.StatusNotAcceptable
