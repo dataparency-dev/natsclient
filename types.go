@@ -57,3 +57,29 @@ type queryResponse struct {
 
 type NATSSCData struct {
 }
+
+type matchspec struct {
+	Roles  []string `json:"roles"`
+	Groups []string `json:"groups"`
+}
+
+type condspec struct {
+	Matches matchspec
+}
+
+type spec struct {
+	Condition condspec
+}
+
+type fieldSpec struct {
+	FName string `json:"fieldname"`
+	Spec  spec   `json:"spec"`
+}
+
+type header struct {
+	Name   string      `json:"name"`
+	Fields []fieldSpec `json:"fields"`
+}
+type ACTemplate struct {
+	Template header `json:"template"`
+}
