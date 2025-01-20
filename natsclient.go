@@ -698,9 +698,10 @@ func EntityRemove(server, identity string, token APIToken) (resp string, status 
 	return resp, status
 }
 
-func TemplateRetrieve(server, identity string, token APIToken) (resp string, status int) {
+func TemplateRetrieve(server, tname, tclass string, token APIToken) (resp string, status int) {
 	eflags := make(map[string]interface{})
-	eflags["identity"] = identity
+	eflags["identity"] = tname
+	eflags["class"] = tclass
 
 	sessKey := GetSessionKey(token.Token) // get session key matching this login token
 	if sessKey == nil {
@@ -746,9 +747,10 @@ func TemplateRetrieve(server, identity string, token APIToken) (resp string, sta
 	return resp, status
 }
 
-func TemplateRegister(server, identity string, tsource string, token APIToken) (resp string, status int) {
+func TemplateRegister(server, tname, tclass, tsource string, token APIToken) (resp string, status int) {
 	eflags := make(map[string]interface{})
-	eflags["identity"] = identity
+	eflags["template"] = tname
+	eflags["class"] = tclass
 
 	sessKey := GetSessionKey(token.Token) // get session key matching this login token
 	if sessKey == nil {
