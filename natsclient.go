@@ -875,6 +875,10 @@ func SetGroups(dopts Dopts, val string) {
 	dopts["groups"] = val
 }
 
+func SetTemplateIDs(dopts Dopts, val string) {
+	dopts["templateIDs"] = val
+}
+
 func SetContentType(dopts Dopts, val string) {
 	dopts["Content-Type"] = val
 }
@@ -1054,6 +1058,9 @@ func Post(server string, body []byte, dopts Dopts, token APIToken) *NATSResponse
 	}
 	if dopts["expiry"] != nil {
 		dflags["expiry"] = dopts["expiry"].(string)
+	}
+	if dopts["templateIDs"] != nil {
+		dflags["templateIDs"] = dopts["templateIDs"].(string)
 	}
 	if dopts["Content-Type"] != nil {
 		dflags["Content-Type"] = dopts["Content-Type"].(string)
