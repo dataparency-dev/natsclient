@@ -879,6 +879,10 @@ func SetTemplateIDs(dopts Dopts, val string) {
 	dopts["templateIDs"] = val
 }
 
+func SetTemplateClass(dopts Dopts, val string) {
+	dopts["templateClass"] = val
+}
+
 func SetContentType(dopts Dopts, val string) {
 	dopts["Content-Type"] = val
 }
