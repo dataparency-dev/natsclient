@@ -1066,6 +1066,9 @@ func Post(server string, body []byte, dopts Dopts, token APIToken) *NATSResponse
 	if dopts["templateIDs"] != nil {
 		dflags["templateIDs"] = dopts["templateIDs"].(string)
 	}
+	if dopts["templateClass"] != nil {
+		dflags["templateClass"] = dopts["templateClass"].(string)
+	}
 	if dopts["Content-Type"] != nil {
 		dflags["Content-Type"] = dopts["Content-Type"].(string)
 	}
